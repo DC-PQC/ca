@@ -1,0 +1,33 @@
+	
+	gcloud projects add-iam-policy-binding secure-masking-demo \
+  --member="serviceAccount:cscrf-dashboard-sa@prefab-bounty-480110-d2.iam.gserviceaccount.com" \
+  --role="roles/cloudkms.viewer"
+  
+	gcloud projects add-iam-policy-binding secure-masking-demo \
+  --member="serviceAccount:cscrf-dashboard-sa@prefab-bounty-480110-d2.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.viewer"
+  
+    
+  gcloud projects add-iam-policy-binding secure-masking-demo \
+  --member="serviceAccount:cscrf-dashboard-sa@prefab-bounty-480110-d2.iam.gserviceaccount.com" \
+  --role="roles/privateca.auditor"
+  
+  gcloud projects add-iam-policy-binding secure-masking-demo\
+  --member="serviceAccount:cscrf-dashboard-sa@prefab-bounty-480110-d2.iam.gserviceaccount.com" \
+  --role="roles/viewer"
+  
+  gcloud compute instances create kms-dashboard-vm \
+  --project=prefab-bounty-480110-d2 \
+  --zone=us-central1-a \
+  --machine-type=e2-micro \
+  --service-account=cscrf-dashboard-sa@prefab-bounty-480110-d2.iam.gserviceaccount.com \
+  --scopes=cloud-platform \
+  --image-family=debian-12 \
+  --image-project=debian-cloud \
+  --boot-disk-size=20GB
+  
+  sudo systemctl status cscrf-dashboard    # is it running?
+sudo journalctl -u cscrf-dashboard -f    # live logs
+sudo systemctl restart cscrf-dashboard   # restart after changes
+
+bash ~/cscrf-dashboard/setup.sh

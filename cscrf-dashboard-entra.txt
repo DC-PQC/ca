@@ -1,0 +1,60 @@
+Step 1 — Open firewall (run once in Cloud Shell)
+bashgcloud compute firewall-rules create allow-cscrf-dashboard \
+    --project=prefab-bounty-480110-d2 \
+    --allow=tcp:5000 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=cscrf-dashboard \
+    --description="Allow CSCRF dashboard on port 5000"
+
+gcloud compute instances add-tags kms-dashboard-vm \
+    --tags=cscrf-dashboard \
+    --zone=us-central1-a \
+    --project=prefab-bounty-480110-d2
+
+Step 2 — Upload zip from Cloud Shell
+bash# Upload the zip to the VM
+gcloud compute scp cscrf-main.zip kms-dashboard-vm:~/ \
+    --zone=us-central1-a \
+    --project=prefab-bounty-480110-d2
+
+Step 3 — SSH into VM and run setup
+bashgcloud compute ssh kms-dashboard-vm --zone=us-central1-a
+Then inside the VM:
+bash# Extract
+mkdir -p ~/cscrf-dashboard
+unzip ~/cscrf-main.zip -d /tmp/extract
+cp -r /tmp/extract/cscrf-main/* ~/cscrf-dashboard/
+
+# Run one-shot setup (installs Python, dependencies, systemd service)
+bash ~/cscrf-dashboard/setup.sh
+```
+
+---
+
+## Step 4 — Access the dashboard
+```
+http://35.188.133.34:5000
+Username: admin
+Password: CscrfDemo@2026
+
+Useful commands on the VM
+bashsudo systemctl status cscrf-dashboard    # is it running?
+sudo journalctl -u cscrf-dashboard -f    # live logs
+sudo systemctl restart cscrf-dashboard   # restart after changes
+
+---------------------------------------
+
+To enable Entra SSO when you're ready — just 3 things:
+1. Create App Registration in Azure Portal (follow ENTRA_SETUP.md)
+2. SSH into VM and update .env:
+bashgcloud compute ssh kms-dashboard-vm --zone=us-central1-a
+nano ~/cscrf-dashboard/.env
+```
+```
+AUTH_MODE=entra
+ENTRA_CLIENT_ID=<from Azure portal>
+ENTRA_CLIENT_SECRET=<from Azure portal>
+ENTRA_TENANT_ID=<from Azure portal>
+OIDC_REDIRECT_URI=http://35.188.133.34:5000/auth/callback
+3. Restart:
+bashsudo systemctl restart cscrf-dashboard
